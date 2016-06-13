@@ -40,13 +40,11 @@ def test():
     leaarningRate = 0.1
     pesos = [0, 0, 0]
     trainingSet = [((1, 0, 0), 1), ((1, 0, 1), 1), ((1, 1, 0), 1), ((1, 1, 1), 0)]
+
+
     limitIterations = 100000
 
     perceptron = Perceptron(3, threshold, leaarningRate)
     perceptron.train(trainingSet, limitIterations)
 
     print perceptron.test((0, 1, 0))
-
-
-
-test()
