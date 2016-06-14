@@ -4,7 +4,7 @@ import csv
 Class that encapsulates a neuron, has weights, that are its internal
 state, threshold centers the training of the dataset in a specific
 position, this is a hyperparameter and depends exclusivly on the data.
-LearningRate, is another hyperparameter 
+LearningRate, is another hyperparameter
 '''
 class Perceptron(object):
     weights = []
@@ -24,12 +24,16 @@ class Perceptron(object):
             for row in reader:
                 if (row[0] == perceptron.WEIGHTS_LABEL):
                     perceptron.weights = map(lambda x : float(x), row[1:])
-                if (row[0] == perceptron.WEIGHTS_LABEL):
-                    perceptron.threshold = row[1]
+                if (row[0] == perceptron.THRESHOLD_LABEL):
+                    perceptron.threshold = float(row[1])
                 if (row[0] == perceptron.LEARNING_RATE_LABEL):
-                     perceptron.learningRate = row[1]
+                     perceptron.learningRate = float(row[1])
         finally:
             f.close()
+
+        print "weights :", perceptron.weights, "threshold :", perceptron.threshold, "learningRate :", perceptron.learningRate
+
+
 
         return perceptron
 
@@ -43,12 +47,12 @@ class Perceptron(object):
 
     def train(self, trainingSet, limitIterations):
         while True:
-            print('-' * 60)
+            # print('-' * 60)
             errorSet = 0
             limitIterations -= 1
 
             for vector_de_entrada, salida_deseada in trainingSet:
-                print(self.weights)
+                # print(self.weights)
                 result = self.dotProduct(vector_de_entrada) > self.threshold
                 error = salida_deseada - result
                 if error != 0:
@@ -63,16 +67,16 @@ class Perceptron(object):
         return (self.dotProduct(inputValue) - self.threshold) > 0
 
     def saveWeights(self, filename):
-        weightsCsv = self.weights
+        weightsCsv = self.weights[:]
         weightsCsv.insert(0, "weights")
 
         thresholdCsv = ["threshold", self.threshold]
         learningRateCsv = ["learningRate", self.learningRate]
 
-        weights = open(filename + ".csv", 'w')
-        writer = csv.writer(weights)
+        weightsFile = open(filename + ".csv", 'w')
+        writer = csv.writer(weightsFile)
         writer.writerows([weightsCsv, thresholdCsv, learningRateCsv])
-        weights.close()
+        weightsFile.close()
 
 '''
 Small demostration of how perceptron works

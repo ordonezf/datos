@@ -30,21 +30,70 @@ def createRealDataSet(requestedNumber):
 
     return trainDataSet
 
+def testReal(requestedNumber, perceptron):
+    correctResultCount = 0
+
+    f = open("csv/train.csv", 'r')
+    correcness = 0
+    wrongPredicted = 0
+    missed = 0
+
+    try:
+        reader = csv.reader(f)
+        line = 0
+        for row in reader:
+            if line == 0:
+                line +=1
+                continue
+            # print "row", row
+            row = row[1:]
+            number = tuple([int(x) for x in row[1:]])
+
+            isRequestedNumber = int(row[0]) == requestedNumber
+
+            if (perceptron.test(number) and isRequestedNumber):
+                correcness += 1
+
+            if (perceptron.test(number) and not isRequestedNumber):
+                wrongPredicted += 1
+
+            if (not perceptron.test(number) and isRequestedNumber):
+                missed += 1
+
+    finally:
+        f.close()
+
+    print "correcness :", correcness, "wrongPredicted :", wrongPredicted, "missed :", missed
+    return
+
+
 def main():
-    #example of perceptron creation with meta data
-    dimension = 785
-    threshold = 0.3
-    learningRate = 0.1
-    perceptron = pc.Perceptron(dimension, threshold, learningRate)
+    # example of perceptron creation with meta data
+    # dimension = 785
+    # threshold = 0.3
+    # learningRate = 0.1
+    # perceptron = pc.Perceptron(dimension, threshold, learningRate)
+    #
+    # print "Begin creating dataset"
+    #
+    # isThreeDataSet = createRealDataSet(3)
+    #
+    # print "Finish creating dataset"
+    # print "Begin training"
+    #
+    # perceptron.train(isThreeDataSet, 10)
+    #
+    # print "Finish training"
+    #
+    # print "Saving perceptron"
+    # perceptron.saveWeights("isThree")
 
-    isThreeDataSet = createRealDataSet(3)
 
-    print isThreeDataSet
+    print "Begin Testing"
+    perceptron = pc.Perceptron.perceptronWithFilename("isThree")
+    #
+    testReal(3, perceptron)
 
-    perceptron.train(isThreeDataSet, 1000)
-
-    perceptron.saveWeights("isThree")
-
-    #training with sets as [((1, 2, 3, 0, 0, 0), 1), ((0, 0, 0, 3, 3, 8), 0)]
+    print "Finish Testing"
 
 main()
