@@ -1,11 +1,39 @@
+import csv
 
+'''
+Class that encapsulates a neuron, has weights, that are its internal
+state, threshold centers the training of the dataset in a specific
+position, this is a hyperparameter and depends exclusivly on the data.
+LearningRate, is another hyperparameter 
+'''
 class Perceptron(object):
-    wights = []
+    weights = []
     threshold = 0
-    learningRate = 0;
+    learningRate = 0
 
+    WEIGHTS_LABEL = "weights"
+    THRESHOLD_LABEL = "threshold"
+    LEARNING_RATE_LABEL = "learningRate"
 
-    def __init__(self, dimension, threshold, learningRate):
+    @staticmethod
+    def perceptronWithFilename(filename):
+        perceptron = Perceptron()
+        f = open(filename + ".csv", 'r')
+        try:
+            reader = csv.reader(f)
+            for row in reader:
+                if (row[0] == perceptron.WEIGHTS_LABEL):
+                    perceptron.weights = map(lambda x : float(x), row[1:])
+                if (row[0] == perceptron.WEIGHTS_LABEL):
+                    perceptron.threshold = row[1]
+                if (row[0] == perceptron.LEARNING_RATE_LABEL):
+                     perceptron.learningRate = row[1]
+        finally:
+            f.close()
+
+        return perceptron
+
+    def __init__(self, dimension = 100, threshold = 0.5, learningRate = 0.1):
         self.weights = [0 for x in xrange(dimension)]
         self.threshold = threshold
         self.learningRate = learningRate
@@ -34,7 +62,21 @@ class Perceptron(object):
     def test(self, inputValue):
         return (self.dotProduct(inputValue) - self.threshold) > 0
 
+    def saveWeights(self, filename):
+        weightsCsv = self.weights
+        weightsCsv.insert(0, "weights")
 
+        thresholdCsv = ["threshold", self.threshold]
+        learningRateCsv = ["learningRate", self.learningRate]
+
+        weights = open(filename + ".csv", 'w')
+        writer = csv.writer(weights)
+        writer.writerows([weightsCsv, thresholdCsv, learningRateCsv])
+        weights.close()
+
+'''
+Small demostration of how perceptron works
+'''
 def test():
     threshold = 0.5
     leaarningRate = 0.1

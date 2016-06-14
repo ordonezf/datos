@@ -36,6 +36,17 @@ def createRandomDataSet(dimension, ammount, elementMax):
 
     return trueSet
 
+def testRandomDataSet(dimension, ammount, elementMax, perceptron):
+    randomTest = createRandomDataSet(dimension, ammount, elementMax)
+    correctResultCount = 0
+
+    for test in randomTest:
+        if perceptron.test(test[0]) == test[1]:
+            correctResultCount += 1
+
+    return correctResultCount
+
+
 def main():
     #example of perceptron creation with meta data
     dimension = 100
@@ -43,24 +54,22 @@ def main():
     learningRate = 0.1
     perceptron = pc.Perceptron(dimension, threshold, learningRate)
 
-    #training with sets as [((1, 2, 3, 0, 0, 0), 1), ((3, 2, 4, 0, 0, 0), 0)]
+    #training with sets as [((1, 2, 3, 0, 0, 0), 1), ((0, 0, 0, 3, 3, 8), 0)]
     ammount = 1000
     elementMax = 256
     randomTest = createRandomDataSet(dimension, ammount, elementMax)
+
+    rd.shuffle(randomTest)
+
     perceptron.train(randomTest, dimension)
 
+    testAmmount = 1000
 
-    #make random True and test it
-    testTrue = getRandopmPositive(dimension, elementMax)
+    correctnes = testRandomDataSet(dimension, testAmmount, elementMax, perceptron)
 
-    print perceptron.test(testTrue)
+    print "correctness :", correctnes, "over :", testAmmount
 
-    #make random False and test it
-    testFalse = getRandomZero(dimension, elementMax)
-
-    print perceptron.test(testFalse)
-
-
-
+    perceptron.saveWeights("test")
+    perceptron = pc.Perceptron.perceptronWithFilename("test")
 
 main()
