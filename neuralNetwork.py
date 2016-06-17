@@ -19,6 +19,7 @@ next(r)
 data = []
 target = []
 
+print "Prepping data..."
 for row in r:
     aux = [0 for x in xrange(10)]
     aux[int(row[0])] = 1
@@ -34,14 +35,15 @@ w1 = 2 * np.random.random((len(data[0]), 50)) - 1   #[40k x 50]
 w2 = 2 * np.random.random((50, 25)) - 1             #[50 x 25]
 w3 = 2 * np.random.random((25, 10)) - 1             #[25 x 10]
 
-for lap in xrange(LAPS):
-    print lap
+print "Training..."
+for lap in xrange(50):
     layer_0 = data
     layer_1 = sigmoid(np.dot(layer_0, w1), not derive)
     layer_2 = sigmoid(np.dot(layer_1, w2), not derive)
     layer_3 = sigmoid(np.dot(layer_2, w3), not derive)
 
     layer_3_error = target - layer_3
+    #TODO: fix this, sigmoid breaks everything!!!
     layer_3_delta = layer_3_error * sigmoid(layer_3, derive)
 
     layer_2_error = np.dot(layer_3_delta, w3.T)
@@ -54,14 +56,33 @@ for lap in xrange(LAPS):
     w2 = np.dot(layer_1.T, layer_2_delta)
     w1 = np.dot(layer_0.T, layer_1_delta)
 
-print "w1:", w1
+test = open("csv/test.csv", "r")
+r = csv.reader(test)
+next(r)
 
-print "w2:", w2
+ar = open("csv/submit.csv","w")
+w = csv.writer(ar)
 
-print "w3:", w3
+print "Predicting..."
+output = []
+for row in r:
+    layer_0 = np.array([float(x) for x in row])
+    layer_1 = np.dot(layer_0, w1)
+    layer_2 = np.dot(layer_1, w2)
+    output.append(np.dot(layer_2, w3))
 
+w.writerow(("ImageId","Label"))
+c = 1
+e = 0
+for out in output:
+    try:
+        n = out.tolist().index(max(out))
+        w.writerow((c, n))
+    except:
+        w.writerow((c, np.random.randint(0,9)))
+        e += 1
+    c += 1
 
-
-
-
-
+print "Total errors: ",e
+ar.close()
+test.close()
