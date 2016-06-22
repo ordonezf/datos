@@ -4,6 +4,7 @@ import numpy as np
 import csv
 
 np.seterr(all = 'ignore')
+#np.random.seed(0)
 
 # sigmoid transfer function
 # IMPORTANT: when using the logit (sigmoid) transfer function for the output layer make sure y values are scaled from 0 to 1
@@ -18,11 +19,17 @@ def dsigmoid(y):
 
 # using tanh over logistic sigmoid is recommended
 def tanh(x):
-    return math.tanh(x)
+    return np.tanh(x)
 
 # derivative for tanh sigmoid
-def dtanh(y):
+def dtanh(x):
+    y = tanh(x)
     return 1 - y*y
+
+def softmax(x):
+    e = np.exp(x - np.amax(x))
+    dist = e / np.sum(e)
+    return dist
 
 class MLP_NeuralNetwork(object):
     """
@@ -50,14 +57,14 @@ class MLP_NeuralNetwork(object):
         self.rate_decay = rate_decay
 
         # initialize arrays
-        self.input = input + 1 # add 1 for bias node
+        self.input = input # add 1 for bias node
         self.hidden = hidden
         self.output = output
 
         # set up array of 1s for activations
-        self.ai = [1.0] * self.input
-        self.ah = [1.0] * self.hidden
-        self.ao = [1.0] * self.output
+        self.ai = np.zeros((42000,784))
+        self.ah = np.zeros((784,100))
+        self.ao = np.zeros((100,10))
 
         # create randomized weights
         # use scheme from 'efficient backprop to initialize weights
@@ -74,35 +81,17 @@ class MLP_NeuralNetwork(object):
 
     def feedForward(self, inputs):
         """
-        The feedforward algorithm loops over all the nodes in the hidden layer and
+        The feedForward algorithm loops over all the nodes in the hidden layer and
         adds together all the outputs from the input layer * their weights
         the output of each node is the sigmoid function of the sum of all inputs
         which is then passed on to the next layer.
         :param inputs: input data
         :return: updated activation output vector
         """
-        if len(inputs) != self.input-1:
-            raise ValueError('Wrong number of inputs you silly goose!')
+        self.ai = np.array(inputs)
+        self.ah = tanh(self.ai.dot(self.wi))
+        self.ao = softmax(self.ah.dot(self.wo))
 
-        # input activations
-        for i in range(self.input -1): # -1 is to avoid the bias
-            self.ai[i] = inputs[i]
-
-        # hidden activations
-        for j in range(self.hidden):
-            sum = 0.0
-            for i in range(self.input):
-                sum += self.ai[i] * self.wi[i][j]
-            self.ah[j] = tanh(sum)
-
-        # output activations
-        for k in range(self.output):
-            sum = 0.0
-            for j in range(self.hidden):
-                sum += self.ah[j] * self.wo[j][k]
-            self.ao[k] = sigmoid(sum)
-
-        return self.ao[:]
 
     def backPropagate(self, targets):
         """
@@ -118,52 +107,22 @@ class MLP_NeuralNetwork(object):
         :param N: learning rate
         :return: updated weights
         """
-        if len(targets) != self.output:
-            raise ValueError('Wrong number of targets you silly goose!')
+        target = np.array(targets)
+        error = -(target - self.ao)
+        output_deltas = error #dsigmoid(self.ao) * error
 
-        # calculate error terms for output
-        # the delta tell you which direction to change the weights
-        output_deltas = [0.0] * self.output
-        for k in range(self.output):
-            error = -(targets[k] - self.ao[k])
-            output_deltas[k] = dsigmoid(self.ao[k]) * error
+        error = output_deltas.dot(self.wo.T)
+        hidden_deltas = dtanh(self.ah) * error
 
-        # calculate error terms for hidden
-        # delta tells you which direction to change the weights
-        hidden_deltas = [0.0] * self.hidden
-        for j in range(self.hidden):
-            error = 0.0
-            for k in range(self.output):
-                error += output_deltas[k] * self.wo[j][k]
-            hidden_deltas[j] = dtanh(self.ah[j]) * error
+        change = output_deltas.T.dot(self.ah).T
+        self.wi = (self.learning_rate * change) + self.co
+        self.co = change
 
-        # update the weights connecting hidden to output
-        for j in range(self.hidden):
-            for k in range(self.output):
-                change = output_deltas[k] * self.ah[j]
-                self.wo[j][k] -= self.learning_rate * change + self.co[j][k] * self.momentum
-                self.co[j][k] = change
+        change = hidden_deltas.T.dot(self.ai).T
+        self.wi = (self.learning_rate * change) + self.ci
+        self.ci = change
 
-        # update the weights connecting input to hidden
-        for i in range(self.input):
-            for j in range(self.hidden):
-                change = hidden_deltas[j] * self.ai[i]
-                self.wi[i][j] -= self.learning_rate * change + self.ci[i][j] * self.momentum
-                self.ci[i][j] = change
-
-        # calculate error
-        error = 0.0
-        for k in range(len(targets)):
-            error += 0.5 * (targets[k] - self.ao[k]) ** 2
-        return error
-
-    def test(self, patterns):
-        """
-        Currently this will print out the targets next to the predictions.
-        Not useful for actual ML, just for visual inspection.
-        """
-        for p in patterns:
-            print(p[1], '->', self.feedForward(p[0]))
+        return np.mean(0.5 * (error)**2)
 
     def train(self, patterns):
         # N: learning rate
@@ -171,11 +130,18 @@ class MLP_NeuralNetwork(object):
         for i in range(self.iterations):
             error = 0.0
             # random.shuffle(patterns)
+            #n = len(patterns)
+            """
             for p in patterns:
                 inputs = p[0]
                 targets = p[1]
                 self.feedForward(inputs)
                 error += self.backPropagate(targets)
+                print "lap", n
+                n -= 1
+            """
+            self.feedForward(patterns[1])
+            error = self.backPropagate(patterns[0])
             with open('error.txt', 'a') as errorfile:
                 errorfile.write(str(error) + '\n')
                 errorfile.close()
@@ -184,6 +150,45 @@ class MLP_NeuralNetwork(object):
             # learning rate decay
             self.learning_rate = self.learning_rate * (self.learning_rate / (self.learning_rate + (self.learning_rate * self.rate_decay)))
 
+
+    def test(self, patterns):
+        """
+        Currently this will print out the targets next to the predictions.
+        Not useful for actual ML, just for visual inspection.
+        """
+        test = open("csv/test.csv", "r")
+        r = csv.reader(test)
+        next(r)
+        ar = open("csv/submit2.csv","w")
+        w = csv.writer(ar)
+
+        print "Predicting..."
+        output = []
+        for row in r:
+            self.ai = np.array([int(x) for x in row])
+            self.ah = tanh(self.ai.dot(self.wi))
+            self.ao = softmax(self.ah.dot(self.wo))
+            output.append(self.ao)
+
+        w.writerow(("ImageId","Label"))
+        c = 1
+        e = 0
+        dic = {}
+        for out in output:
+            try:
+                n = out.tolist().index(max(out))
+                dic.setdefault(n,0)
+                dic[n] += 1
+                w.writerow((c, n))
+            except:
+                w.writerow((c, np.random.randint(0,9)))
+                e += 1
+            c += 1
+
+        print "Total errors: ",e
+        print dic
+        test.close()
+        ar.close()
 
     def predict(self, X):
         """
@@ -216,36 +221,18 @@ def demo():
         train.close()
 
         data = np.array(data)
-        #
-        # data = [target, data]
-        #
-        # data = np.loadtxt('csv/train.csv', delimiter = ',')
-        #
-        # # first ten values are the one hot encoded y (target) values
-        # y = data[:,0:10]
-        # #y[y == 0] = -1 # if you are using a tanh transfer function make the 0 into -1
-        # #y[y == 1] = .90 # try values that won't saturate tanh
-        #
-        # data = data[:,10:] # x data
-        #data = data - data.mean(axis = 1)
         data -= data.min() # scale the data so values are between 0 and 1
         data /= data.max() # scale
 
-        y = np.array(target)
-        out = []
-
-        print data.shape
-
-        # populate the tuple list with the data
-        for i in range(data.shape[0]):
-            fart = list((data[i,:].tolist(), y[i].tolist())) # don't mind this variable name
-            out.append(fart)
+        target = np.array(target)
+        out = [target, data]
 
         return out
 
     X = load_data()
 
-    NN = MLP_NeuralNetwork(784, 100, 10, iterations = 50, learning_rate = 0.5, momentum = 0.5, rate_decay = 0.01)
+    NN = MLP_NeuralNetwork(784, 200, 10, iterations = 50, learning_rate = 0.5, momentum = 0.5, rate_decay = 0.01)
+
 
     NN.train(X)
 
@@ -253,3 +240,10 @@ def demo():
 
 if __name__ == '__main__':
     demo()
+
+
+# 10 laps -------->{1: 12462, 9: 454, 5: 14202, 7: 882}
+# 50 laps -------->{0: 465, 1: 5842, 2: 20180, 4: 43, 7: 1439, 9: 31}
+# 50 laps sin 0-1 -------->{0: 5717, 1: 244, 2: 15, 3: 753, 5: 16097, 6: 3380, 7: 4, 9: 1790}
+# 50 laps 50hl ------->{1: 1, 2: 3463, 3: 1, 5: 19394, 6: 47, 7: 5090, 9: 4}
+
