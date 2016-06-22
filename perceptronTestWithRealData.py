@@ -46,18 +46,24 @@ def testReal(requestedNumber, perceptron):
                 line +=1
                 continue
             # print "row", row
+            realNumber = int(row[0])
+
             row = row[1:]
             number = tuple([int(x) for x in row[1:]])
 
-            isRequestedNumber = int(row[0]) == requestedNumber
+            isRequestedNumber = realNumber == requestedNumber
 
-            if (perceptron.test(number) and isRequestedNumber):
+            perceptronTest = perceptron.test(number)
+
+            # print "perceptronTest :", perceptronTest, "request number :", realNumber
+
+            if (perceptronTest and isRequestedNumber):
                 correcness += 1
 
-            if (perceptron.test(number) and not isRequestedNumber):
+            if (perceptronTest and not isRequestedNumber):
                 wrongPredicted += 1
 
-            if (not perceptron.test(number) and isRequestedNumber):
+            if (not perceptronTest and isRequestedNumber):
                 missed += 1
 
     finally:
@@ -69,28 +75,28 @@ def testReal(requestedNumber, perceptron):
 
 def main():
     # example of perceptron creation with meta data
-    # dimension = 785
-    # threshold = 0.3
-    # learningRate = 0.1
-    # perceptron = pc.Perceptron(dimension, threshold, learningRate)
-    #
-    # print "Begin creating dataset"
-    #
-    # isThreeDataSet = createRealDataSet(3)
-    #
-    # print "Finish creating dataset"
-    # print "Begin training"
-    #
-    # perceptron.train(isThreeDataSet, 10)
-    #
-    # print "Finish training"
-    #
-    # print "Saving perceptron"
-    # perceptron.saveWeights("isThree")
+    dimension = 785
+    threshold = 5
+    learningRate = 0.01
+    perceptron = pc.Perceptron(dimension, threshold, learningRate)
+
+    print "Begin creating dataset"
+
+    isThreeDataSet = createRealDataSet(3)
+
+    print "Finish creating dataset"
+    print "Begin training"
+
+    perceptron.train(isThreeDataSet, 20)
+
+    print "Finish training"
+
+    print "Saving perceptron"
+    # perceptron.saveWeights("isThree1")
 
 
     print "Begin Testing"
-    perceptron = pc.Perceptron.perceptronWithFilename("isThree")
+    # perceptron = pc.Perceptron.perceptronWithFilename("isThree1")
     #
     testReal(3, perceptron)
 

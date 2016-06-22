@@ -33,8 +33,6 @@ class Perceptron(object):
 
         print "weights :", perceptron.weights, "threshold :", perceptron.threshold, "learningRate :", perceptron.learningRate
 
-
-
         return perceptron
 
     def __init__(self, dimension = 100, threshold = 0.5, learningRate = 0.1):
@@ -47,12 +45,10 @@ class Perceptron(object):
 
     def train(self, trainingSet, limitIterations):
         while True:
-            # print('-' * 60)
             errorSet = 0
             limitIterations -= 1
 
             for vector_de_entrada, salida_deseada in trainingSet:
-                # print(self.weights)
                 result = self.dotProduct(vector_de_entrada) > self.threshold
                 error = salida_deseada - result
                 if error != 0:
