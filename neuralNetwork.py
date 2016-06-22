@@ -48,7 +48,7 @@ train.close()
 data = np.array(data)
 target = np.array(target)
 
-w1 =  np.random.normal(loc = 0, size = (len(data[0]), 50))   #[40k x 50]
+w1 =  np.random.normal(loc = 0, size = (len(data[0]), 50))   #[784 x 50]
 w2 =  np.random.normal(loc = 0, size = (50, 10))             #[55 x 10]
 
 learning_rate = 0.01
@@ -56,29 +56,34 @@ decay = 0.0001
 c1 = np.zeros((len(data[0]), 50))
 c2 = np.zeros((50,10))
 layer_0 = data
+print layer_0.shape
 print "Training..."
 for lap in xrange(10):
-    layer_1 = sigmoid(layer_0.dot(w1))
+    ######################ForwardPropagation##################
+    layer_1 = tanh(layer_0.dot(w1))
     layer_2 = softmax(layer_1.dot(w2))
 
+    ######################BackPropagation#####################
     layer_2_error = -(target - layer_2)
-    layer_2_delta = layer_2_error #sigmoid(layer_2, True) * layer_2_error
+    layer_2_delta = layer_2_error
 
     layer_1_error = layer_2_delta.dot(w2.T)
-    layer_1_delta = sigmoid(layer_1, True) * layer_1_error
+    layer_1_delta = dtanh(layer_1) * layer_1_error
 
     change = layer_2_delta.T.dot(layer_1).T
-    w2 = learning_rate * change + c2
+    w2 = (learning_rate * change) + c2
     c2 = change
 
     change = layer_1_delta.T.dot(layer_0).T
-    w1 = learning_rate * change + c1
+    w1 = (learning_rate * change) + c1
     c1 = change
 
-    print "Lap {} error: {}".format(lap, np.mean(layer_2_error))
+    print "Lap {} error: {}".format(lap, -layer_2_error.mean())
     learning_rate = learning_rate * (learning_rate / (learning_rate + (learning_rate * decay)))
 
-
+print w1.mean()
+print "-----------------------------------------------------"
+print w2.mean()
 test = open("csv/test.csv", "r")
 r = csv.reader(test)
 next(r)
@@ -89,7 +94,7 @@ print "Predicting..."
 output = []
 for row in r:
     layer_0 = np.array([int(x) for x in row])
-    layer_1 = sigv2(layer_0.dot(w1))
+    layer_1 = tanh(layer_0.dot(w1))
     layer_2 = softmax(layer_1.dot(w2))
     output.append(layer_2)
 
