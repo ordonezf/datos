@@ -4,7 +4,7 @@ import numpy as np
 import csv
 
 np.seterr(all = 'ignore')
-#np.random.seed(0)
+np.random.seed(0)
 
 # sigmoid transfer function
 # IMPORTANT: when using the logit (sigmoid) transfer function for the output layer make sure y values are scaled from 0 to 1
@@ -26,10 +26,16 @@ def dtanh(x):
     y = tanh(x)
     return 1 - y*y
 
+#e = np.exp(x - np.amax(x))
+#dist = e / np.sum(e)
 def softmax(x):
-    e = np.exp(x - np.amax(x))
-    dist = e / np.sum(e)
-    return dist
+    e = []
+    for ex in x:
+        e.append(np.exp(ex - np.amax(ex)))
+    out = []
+    for e1 in e:
+        out.append(e1 / np.sum(e1))
+    return np.array(out)
 
 class MLP_NeuralNetwork(object):
     """
@@ -62,16 +68,17 @@ class MLP_NeuralNetwork(object):
         self.output = output
 
         # set up array of 1s for activations
-        self.ai = np.zeros((42000,784))
-        self.ah = np.zeros((784,100))
-        self.ao = np.zeros((100,10))
+        self.ai = 1#np.random.random((42000, self.input))
+        self.ah = 1#np.random.random((self.input, self.hidden))
+        self.ao = 1#np.random.random((self.hidden, self.output))
 
         # create randomized weights
         # use scheme from 'efficient backprop to initialize weights
         input_range = 1.0 / self.input ** (1/2)
         output_range = 1.0 / self.hidden ** (1/2)
         self.wi = np.random.normal(loc = 0, scale = input_range, size = (self.input, self.hidden))
-        self.wo = np.random.normal(loc = 0, scale = output_range, size = (self.hidden, self.output))
+        self.wo = np.random.uniform(size = (self.hidden, self.output)) / np.sqrt(self.hidden)
+        
 
         # create arrays of 0 for changes
         # this is essentially an array of temporary values that gets updated at each iteration
@@ -92,7 +99,6 @@ class MLP_NeuralNetwork(object):
         self.ah = tanh(self.ai.dot(self.wi))
         self.ao = softmax(self.ah.dot(self.wo))
 
-
     def backPropagate(self, targets):
         """
         For the output layer
@@ -108,45 +114,36 @@ class MLP_NeuralNetwork(object):
         :return: updated weights
         """
         target = np.array(targets)
-        error = -(target - self.ao)
-        output_deltas = error #dsigmoid(self.ao) * error
+        #error = -(target - self.ao)
+        output_deltas = -(target - self.ao)
 
         error = output_deltas.dot(self.wo.T)
         hidden_deltas = dtanh(self.ah) * error
 
         change = output_deltas.T.dot(self.ah).T
-        self.wi = (self.learning_rate * change) + self.co
+        #l2_out = 0.01 * self.wo
+        self.wo -= self.learning_rate * (change) + self.co * self.momentum
         self.co = change
 
         change = hidden_deltas.T.dot(self.ai).T
-        self.wi = (self.learning_rate * change) + self.ci
+        #l1_out = 0.01 * self.wi
+        self.wi -= self.learning_rate * (change) + self.ci * self.momentum
         self.ci = change
 
-        return np.mean(0.5 * (error)**2)
+        return np.mean(error)
 
     def train(self, patterns):
         # N: learning rate
         print "Begin training"
         for i in range(self.iterations):
             error = 0.0
-            # random.shuffle(patterns)
-            #n = len(patterns)
-            """
-            for p in patterns:
-                inputs = p[0]
-                targets = p[1]
-                self.feedForward(inputs)
-                error += self.backPropagate(targets)
-                print "lap", n
-                n -= 1
-            """
             self.feedForward(patterns[1])
             error = self.backPropagate(patterns[0])
-            with open('error.txt', 'a') as errorfile:
-                errorfile.write(str(error) + '\n')
-                errorfile.close()
-
+            #with open('error.txt', 'a') as errorfile:
+            #    errorfile.write(str(error) + '\n')
+            #    errorfile.close()
             print "Error : {}, lap :  {}".format(error, i)
+
             # learning rate decay
             self.learning_rate = self.learning_rate * (self.learning_rate / (self.learning_rate + (self.learning_rate * self.rate_decay)))
 
@@ -162,19 +159,22 @@ class MLP_NeuralNetwork(object):
         ar = open("csv/submit2.csv","w")
         w = csv.writer(ar)
 
+        print self.wi[0].mean()
+        print self.wo[0].mean()
         print "Predicting..."
         output = []
+        self.ai = []
         for row in r:
-            self.ai = np.array([int(x) for x in row])
-            self.ah = tanh(self.ai.dot(self.wi))
-            self.ao = softmax(self.ah.dot(self.wo))
-            output.append(self.ao)
+            self.ai.append([int(x) for x in row])
+        self.ai = np.array(self.ai)
+        self.ah = tanh(self.ai.dot(self.wi))
+        self.ao = softmax(self.ah.dot(self.wo))
 
         w.writerow(("ImageId","Label"))
         c = 1
         e = 0
         dic = {}
-        for out in output:
+        for out in self.ao:
             try:
                 n = out.tolist().index(max(out))
                 dic.setdefault(n,0)
@@ -229,10 +229,9 @@ def demo():
 
         return out
 
+    NN = MLP_NeuralNetwork(784, 100, 10, iterations = 300, learning_rate = 0.5, momentum = 0.5, rate_decay = 0.01)
+
     X = load_data()
-
-    NN = MLP_NeuralNetwork(784, 200, 10, iterations = 50, learning_rate = 0.5, momentum = 0.5, rate_decay = 0.01)
-
 
     NN.train(X)
 

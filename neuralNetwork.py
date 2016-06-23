@@ -16,8 +16,11 @@ def sigv2(x):
 
 def softmax(x):
     e = np.exp(x - np.amax(x))
-    dist = e / np.sum(e)
-    return dist
+    #dist = e / np.sum(e)
+    out = []
+    for e1 in e:
+        out.append(e1 / np.sum(e1))
+    return np.array(out)
 
 def tanh(x):
     return np.tanh(x)
