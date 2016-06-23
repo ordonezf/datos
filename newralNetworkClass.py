@@ -26,15 +26,9 @@ def dtanh(x):
     y = tanh(x)
     return 1 - y*y
 
-#e = np.exp(x - np.amax(x))
-#dist = e / np.sum(e)
 def softmax(x):
-    e = []
-    for ex in x:
-        e.append(np.exp(ex - np.amax(ex)))
-    out = []
-    for e1 in e:
-        out.append(e1 / np.sum(e1))
+    e = [np.exp(ex - np.amax(ex)) for ex in x]
+    out = [e1 / np.sum(e1) for e1 in e]
     return np.array(out)
 
 class MLP_NeuralNetwork(object):
@@ -114,7 +108,6 @@ class MLP_NeuralNetwork(object):
         :return: updated weights
         """
         target = np.array(targets)
-        #error = -(target - self.ao)
         output_deltas = -(target - self.ao)
 
         error = output_deltas.dot(self.wo.T)
@@ -130,7 +123,7 @@ class MLP_NeuralNetwork(object):
         self.wi -= self.learning_rate * (change) + self.ci * self.momentum
         self.ci = change
 
-        return np.mean(error)
+        return np.mean(-output_deltas)
 
     def train(self, patterns):
         # N: learning rate
@@ -148,7 +141,23 @@ class MLP_NeuralNetwork(object):
             self.learning_rate = self.learning_rate * (self.learning_rate / (self.learning_rate + (self.learning_rate * self.rate_decay)))
 
 
-    def test(self, patterns):
+    def test_cross(self, test):
+
+        self.ai = np.array(test[1])
+        self.ah = tanh(self.ai.dot(self.wi))
+        self.ao = softmax(self.ah.dot(self.wo))
+
+        dic = {}
+        c = 0
+        for out,check in zip(self.ao,test[0]):
+            n = out.tolist().index(max(out))
+            if n == check.tolist().index(max(check)):
+                c += 1
+
+        print "Aciertos:", c/17000.0
+        print c
+
+    def test(self):
         """
         Currently this will print out the targets next to the predictions.
         Not useful for actual ML, just for visual inspection.
@@ -225,24 +234,25 @@ def demo():
         data /= data.max() # scale
 
         target = np.array(target)
-        out = [target, data]
 
-        return out
+        train = [target[:35000],data[:35000]]
+        test = [target[35000:],data[35000:]]
 
-    NN = MLP_NeuralNetwork(784, 100, 10, iterations = 300, learning_rate = 0.5, momentum = 0.5, rate_decay = 0.01)
+        return train, test
 
-    X = load_data()
+    NN = MLP_NeuralNetwork(784, 100, 10, iterations = 50, learning_rate = 0.01, momentum = 0.5, rate_decay = 0.01)
 
-    NN.train(X)
+    train, test = load_data()
 
-    NN.test(X)
+    NN.train(train)
+    NN.test_cross(test)
+    #NN.test(test)
 
 if __name__ == '__main__':
     demo()
 
 
-# 10 laps -------->{1: 12462, 9: 454, 5: 14202, 7: 882}
-# 50 laps -------->{0: 465, 1: 5842, 2: 20180, 4: 43, 7: 1439, 9: 31}
-# 50 laps sin 0-1 -------->{0: 5717, 1: 244, 2: 15, 3: 753, 5: 16097, 6: 3380, 7: 4, 9: 1790}
-# 50 laps 50hl ------->{1: 1, 2: 3463, 3: 1, 5: 19394, 6: 47, 7: 5090, 9: 4}
-
+# 15 laps lr    -> 0.1  ->  Aciertos: 0.0720588235294
+# 15 laps lr    -> 0.5  ->  Aciertos: 0.0521176470588
+# 15 laps lr    -> 0.01 ->  Aciertos: 0.046
+# 50 laps lr    -> 0.01 ->  Aciertos: 0.182529411765
