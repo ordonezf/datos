@@ -212,7 +212,7 @@ def run():
 
     NN = NeuralNetwork(784, 100, 10,
         iterations = 100,
-        learning_rate = 0.001,
+        learning_rate = 0.1,
         momentum = 0.8,
         rate_decay = 0.0005)
 
@@ -229,8 +229,28 @@ if __name__ == '__main__':
     run()
 
 
-    # 100 laps  lr = 0.1 momentum = 0.5  decay = 0.01 Aciertos = 0.853678571429    100
-    # 100 laps  lr = 0.5 momentum = 0.05  decay = 0.001 Aciertos = 0.834785714286  100
-    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.873178571429 100
-    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.871821428571  150
-    # 100 laps  lr = 0.5 momentum = 0.8  decay = 0.0005 Aciertos = 0.849785714286   100
+    # 100 laps  lr = 0.01 momentum = 0.5  decay = 0.0001 Aciertos: 0.8425
+    # 100 laps  lr = 0.05 momentum = 0.5  decay = 0.0001 Aciertos: 0.823642857143
+    # 100 laps  lr = 0.05 momentum = 0.1  decay = 0.0001 Aciertos: 0.737785714286
+    # 100 laps  lr = 0.01 momentum = 0.5  decay = 0.0002 Aciertos = 0.82725
+    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0002 Aciertos = 0.844607142857
+    # 100 laps  lr = 0.01 momentum = 1    decay = 0.0002 Aciertos = 0.8265
+    # 100 laps  lr = 0.01 momentum = 1.5  decay = 0.0002 Aciertos = 0.827571428571
+    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.857142857143
+    # 150 laps  lr = 0.01 momentum = 0.8  decay = 0.0002 Aciertos = 0.771107142857
+    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.823464285714   1000
+    # 100 laps  lr = 0.1 momentum = 0.5   decay = 0.01   Aciertos = 0.853678571429   100
+    # 100 laps  lr = 0.5 momentum = 0.05  decay = 0.001  Aciertos = 0.834785714286   100
+#max# 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.873178571429   100
+    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.871821428571   150
+    # 100 laps  lr = 0.5 momentum = 0.8   decay = 0.0005 Aciertos = 0.849785714286   100
+    # 100 laps  lr = 0.001 momentum = 0.8  decay = 0.0005 Aciertos = 0.853964285714  100
+    # 100 laps  lr = 0.01 momentum = 0.8  decay = 0.001 Aciertos = 0.773357142857    100
+    # 100 laps  lr = 0.1 momentum = 0.8  decay = 0.0005 Aciertos = 0.854892857143    100
+
+
+
+
+
+
+    #https://www.kaggle.com/amrfuras/digit-recognizer/convolutional-nn-in-python-2/run/57330

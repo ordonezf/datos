@@ -315,3 +315,9 @@ if __name__ == '__main__':
     # 50 laps  lr = 0.01 momentum = 0.8  decay = 0.0005 Aciertos = 0.128892857143    784, 225, 95, 10
     # 50 laps  lr = 0.5 momentum = 0.8  decay = 0.0005 Aciertos = 0.416964285714    784, 225, 95, 10
     # 50 laps  lr = 0.5 momentum = 0.5  decay = 0.05 Aciertos = 0.505321428571    784, 250, 100, 10
+    # 50 laps  lr = 0.2 momentum = 0.05  decay = 0.005 Aciertos = 0.6535       784, 250, 100, 10
+
+
+
+
+#https://www.kaggle.com/amrfuras/digit-recognizer/convolutional-nn-in-python-2/run/57330
