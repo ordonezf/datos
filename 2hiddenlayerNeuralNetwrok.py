@@ -155,7 +155,7 @@ class MLP_NeuralNetwork(object):
         print "Aciertos:", c/float(e)
 
     def test_against(self):
-        test = open("csv/test.csv", "r")
+        test = open("csv/svd_test.csv", "r")
         r = csv.reader(test)
         next(r)
         ar = open("csv/submit98.csv","r")
@@ -232,7 +232,7 @@ def demo():
     run NN demo on the digit recognition dataset from sklearn
     """
     def load_data():
-        train = open("csv/train.csv", "r")
+        train = open("csv/svd_train.csv", "r")
         r = csv.reader(train)
         next(r)
 
@@ -257,9 +257,9 @@ def demo():
 
         return [target, data]
 
-    NN = MLP_NeuralNetwork(784, 250, 100, 10,
-        iterations = 50,
-        learning_rate = 0.2,
+    NN = MLP_NeuralNetwork(101, 75, 35, 10,
+        iterations = 200,
+        learning_rate = 0.5,
         momentum = 0.05,
         rate_decay = 0.005)
 
@@ -316,8 +316,3 @@ if __name__ == '__main__':
     # 50 laps  lr = 0.5 momentum = 0.8  decay = 0.0005 Aciertos = 0.416964285714    784, 225, 95, 10
     # 50 laps  lr = 0.5 momentum = 0.5  decay = 0.05 Aciertos = 0.505321428571    784, 250, 100, 10
     # 50 laps  lr = 0.2 momentum = 0.05  decay = 0.005 Aciertos = 0.6535       784, 250, 100, 10
-
-
-
-
-#https://www.kaggle.com/amrfuras/digit-recognizer/convolutional-nn-in-python-2/run/57330
